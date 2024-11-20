@@ -2,35 +2,34 @@ import numpy as np
 
 def householder(A):
     """
-    Aplica la transformación de Householder a la matriz A para calcular su raíz cuadrada.
-    Devuelve una matriz triangular superior R tal que R * R^T ≈ A.
+    Calcula la raíz cuadrada de una matriz simétrica positiva definida A
+    usando transformaciones de Householder.
     """
-    m, n = A.shape
-    R = A.astype(float)
-
-    for i in range(min(m, n)):
-        # Crear el vector de Householder para la columna i
-        x = R[i:, i]
-        e1 = np.zeros_like(x)
-        e1[0] = np.linalg.norm(x)
-        u = x - e1
-        
-        norm_u = np.linalg.norm(u)
-        if norm_u != 0:
-            u = u / norm_u  
-        
-        # Aplicar la transformación de Householder
-        R[i:, :] -= 2 * np.outer(u, u @ R[i:, :])
+    A = np.array(A, dtype=float)
+    n = A.shape[0]
+    R = A.copy()
+    Q = np.eye(n)
     
-    return np.triu(R)  
+    for k in range(n - 1):
+        # Vector para reflejar
+        x = R[k:, k]
+        norm_x = np.linalg.norm(x)
+        v = x.copy()
+        v[0] += np.sign(x[0]) * norm_x
+        v /= np.linalg.norm(v)
+        
+        # Matriz de Householder
+        H = np.eye(n)
+        H[k:, k:] -= 2.0 * np.outer(v, v)
+        
+        # Aplicar transformación
+        R = H @ R
+        Q = Q @ H.T
 
+    # R ahora es triangular superior. La raíz cuadrada es su transpuesta inferior.
+    return np.tril(R.T)
 
-A = np.array([
-    [4, 1, 2],
-    [1, 2, 3],
-    [2, 3, 6]
-])
-
-S = householder(A)
-print(A)
-print(S)
+# Ejemplo: matriz simétrica positiva definida
+A = np.array([[4, 2], [2, 3]])
+L = householder(A)
+print(L)
