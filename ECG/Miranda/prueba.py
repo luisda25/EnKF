@@ -8,7 +8,8 @@ from scipy.io import loadmat
 import numpy as np
 
 # Cargar el archivo y convertirlo
-file_path = "subject03.mat" 
+subject = "subject03.mat"
+file_path = "/Users/mirandaurbansolano/Documents/GitHub/" + subject
 mat_data = loadmat(file_path) # Cargar el archivo .mat
 Cn = mat_data["Cn"] # Extraer la matriz Cn
 hrdata = np.hstack([np.array(x).flatten() for x in Cn.ravel()]).astype(np.float64)
