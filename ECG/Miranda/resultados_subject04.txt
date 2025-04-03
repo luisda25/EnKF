@@ -1,0 +1,4 @@
+Datos de subject04
+Promedio de BPM: 69.11
+Promedio de HRV (RMSSD): 36.6
+Promedio de lf/hf: 0.36
