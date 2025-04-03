@@ -1,0 +1,12 @@
+Datos de subject01
+Promedio de BPM: 82.24
+Promedio de HRV (RMSSD): 35.39
+Datos de subject01
+Promedio de BPM: 84.06
+Promedio de HRV (RMSSD): 40.89
+Datos de subject02
+Promedio de BPM: 62.61
+Promedio de HRV (RMSSD): 45.27
+Datos de subject01
+Promedio de BPM: 82.24
+Promedio de HRV (RMSSD): 35.39

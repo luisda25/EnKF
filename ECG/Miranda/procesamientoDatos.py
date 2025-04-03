@@ -1,48 +1,54 @@
 import heartpy as hp # Heartpy
 
-import matplotlib.pyplot as plt # Para generar gráficos
 from scipy.io import loadmat # Para archivo de MATLAB
 import numpy as np # Convertir datos
+from scipy.interpolate import interp1d # Pra intrapolar los datos
 
-from scipy.io import loadmat
-import numpy as np
+# Cargar el archivo y convertirlo
+def load_file(file_path):
+    data = loadmat(file_path) # Cargar el archivo .mat
+    Cn = data["Cn"] # Extraer la matriz Cn
+    hrdata = data["Cn"][0][0].flatten()
+    return hrdata
+    
+# Analizar la señal para obtener datos
+def analyze_data(subject, file_path):
+    hrdata = load_file(file_path)
 
-# Cargar el archivo
-subject = "subject03.mat"
-file_path = "/Users/mirandaurbansolano/Documents/GitHub/" + subject
+    # Declaración de variables para el análisis
+    sample_rate = 256.0 # Los datos están sampleados a 256Hz
+    width = 15 # Ancho de cada segmento
+    overlap = 0.5 # 
 
-# Convertir el archivo
-mat_data = loadmat(file_path) # Cargar el archivo .mat
-Cn = mat_data["Cn"] # Extraer la matriz Cn
-hrdata = np.hstack([np.array(x).flatten() for x in Cn.ravel()]).astype(np.float64)
+    # Interpolar datos
+    # time_original = np. linspace(0, len(hrdata)/sample_rate, len (hrdata)) # Crear un eje de tiempo original
+    # new_time = np. linspace(0, len(hrdata)/sample_rate, len(hrdata) * 2) # Crear un nuevo eje de tiempo con mayor resolución
+    # interpolator = interp1d(time_original, hrdata, kind='cubic')
+    # new_hrdata = interpolator(new_time)
 
-rate = 256.0  # La muestra esta sampleada a 256Hz
 
-# Regresa dos diccionarios: working data y measures
-working_data, measures = hp.process(hrdata, rate) 
+    # Procesar la señal
+    working_data, measures = hp.process(hrdata, sample_rate) 
 
-working_data, measures = hp.process_segmentwise(
-    hrdata,  
-    sample_rate = rate,  
-    segment_width = 15,  # 15 segundos  
-    segment_overlap=0.5,  
-    calc_freq=True,
-    reject_segmentwise=False,  # No eliminar segmentos
-    high_precision=True  # Más precisión  
-)
+    working_data, measures = hp.process_segmentwise(
+        hrdata,  
+        sample_rate = sample_rate,  
+        segment_width = width,  # 15 segundos  
+        segment_overlap = overlap,  
+        calc_freq = True,
+        reject_segmentwise = True,  # No eliminar segmentos
+        high_precision = True)
 
-print(f"Total peaks detected: {len(working_data['peaklist'])}")
-print(f"Peaks eliminados: {len(working_data['removed_beats'])}")
+    # Calcular los promedios de BPM y HRV
+    bpm_avg = np.mean(measures['bpm'])
+    hrv_avg = np.mean(measures['rmssd'])
 
-# Plotter
-#hp.plotter(working_data, measures, title = 'Ejemplo')
+    # Imprimir los valores obtenidos
+    print(f"Información de " + subject)
+    print(f"Promedio de BPM: {bpm_avg:.2f}")
+    print(f"Promedio de HRV (RMSSD): {hrv_avg:.2f}")
 
-# Save the graph with Matplotlib
-#plt.savefig('plot_3.jpg')
+subject = "subject01"
+subject_file = "/Users/mirandaurbansolano/Documents/GitHub/" + subject + ".mat"
 
-# Print values
-#print(f"BPM: {measures['bpm']}") # returns BPM value
-#print(f"HRV Measure: {measures['rmssd']}") # returns RMSSD HRV measure
-
-# Show graph
-#plt.show()
+analyze_data(subject, subject_file)
