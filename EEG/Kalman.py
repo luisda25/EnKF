@@ -9,8 +9,17 @@ import math
 from scipy import linalg as lin
 
 
+#New_predicted_S
 import New_Predicted_S.Givens_Rotation_Liz as givens
+import New_Predicted_S.MGS as mgs
+import New_Predicted_S.gram as gs
+#State_transition_matrix
 import State_Trans_Matrix.Potter_Liz as potter
+import State_Trans_Matrix.bierman as bierman
+import State_Trans_Matrix.biermanLiz as biermanLiz
+
+#import Jocelyn
+import Codigo_Jocelyn.bierman_hh as bierman_hh
 
 ########################## READ THE SIGNAL ##########################
 def readSignal(nameSignal, samplingRate):
@@ -80,21 +89,19 @@ def getNextSquareRoot(P,Q,F, typeM):
             lu, d, perm = lin.ldl(newP, lower = 1)
             L = lu.dot(lin.fractional_matrix_power(d,0.5))# P = SS.T = LD^(1/2) D^(1/2) L.T
             
-            SnewT = givens.Givens_Rotation(F, Q, L)
+            SnewT = gs.modified_gram_schmidt(F, Q, L)
             
         except np.linalg.LinAlgError:
             SnewT = 0
             return SnewT
     else:
         try:
-            SnewT = givens.Givens_Rotation(F, Q, P)
+            SnewT = gs.modified_gram_schmidt(F, Q, P)
         except np.linalg.LinAlgError:
             SnewT = 0
             return SnewT
         
     return SnewT.T #return as S
-
-
 
 #################### ENKF ################################
 def EnKF(name_Signal, samplingRate, wC):
@@ -170,9 +177,9 @@ def EnKF(name_Signal, samplingRate, wC):
            xpt_WC = (dotProduct(F_WC, xWC)) + wNoise
            xpt_NWC = (dotProduct(F_NWC, xNWC)) + wNoise
            
-           resultAll_Temp[0,j] = np.sum(xpt).item() / numberSensors 
-           resultWC_Temp[0,j] = np.sum(xpt_WC).item() / 3 
-           resultNWC_Temp[0,j] = np.sum(xpt_NWC).item() / (numberSensors-3) 
+           resultAll_Temp[0,j] = scalar(np.sum(xpt))/numberSensors 
+           resultWC_Temp[0,j] = scalar(np.sum(xpt_WC))/3 
+           resultNWC_Temp[0,j] = scalar(np.sum(xpt_NWC))/(numberSensors-3) 
            
            S_t = getNextSquareRoot(pk, Q, F,ty)
            S_tWC = getNextSquareRoot(pk_WC, Q, F_WC,ty)
@@ -225,7 +232,7 @@ def EnKF(name_Signal, samplingRate, wC):
 sensorName = np.array(['AF3','F7','F3','FC5','T7','P7','O1',
                        'O2','P8','T8','FC6','F4','F8','AF4'])
 
-scalar = np.ndarray.item
+scalar = lambda x: x.item()
 zeros = np.zeros  
 ones = np.ones 
 variance = np.var
@@ -290,3 +297,4 @@ for m in range(2,21): #SESSIONS TO ANALYZE
     np.savetxt('yPost_Allv002' + name + str(numb) + '.csv', amplitudeYPost_All, delimiter=",")
     np.savetxt('yPost_WCv002'+ name + str(numb) + '.csv', amplitudeYPost_WC, delimiter=",")
     np.savetxt('yPost_NWCv002'+ name + str(numb) + '.csv', amplitudeYPost_NWC, delimiter=",")
+    
