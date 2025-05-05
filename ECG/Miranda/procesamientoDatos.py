@@ -4,15 +4,29 @@ from scipy.io import loadmat # Para archivo de MATLAB
 import numpy as np # Convertir datos
 from scipy.interpolate import interp1d # Pra intrapolar los datos
 
+# Elección del sujeto
+def choose_subject(num, interpolados):
+    subject = "subject" + num
+    subject_file = "./DatosSujetos/" + subject + ".mat"
+    
+    if interpolados == "y":
+        interpolados = True
+    elif interpolados == "n":
+        interpolados = False
+    else:
+        return "Error"
+
+    analyze_data(subject, subject_file, interpolados)
+
 # Cargar el archivo y convertirlo
 def load_file(file_path):
-    data = loadmat(file_path) # Cargar el archivo .mat
-    Cn = data["Cn"] # Extraer la matriz Cn
-    hrdata = data["Cn"][0][0].flatten()
+    data = loadmat(file_path)
+    ecg_data = data["Cn"][0][0]  # Acceder a ECG (considerat que está en la 1era columna)
+    hrdata = ecg_data.flatten()
     return hrdata
     
 # Analizar la señal para obtener datos
-def analyze_data(subject, file_path):
+def analyze_data(subject, file_path, interpolados):
     hrdata = load_file(file_path)
 
     # Declaración de variables para el análisis
@@ -21,10 +35,21 @@ def analyze_data(subject, file_path):
     overlap = 0.5 # 
 
     # Interpolar datos
-    #time_original = np. linspace(0, len(hrdata)/sample_rate, len (hrdata)) # Crear un eje de tiempo original
-    #new_time = np. linspace(0, len(hrdata)/sample_rate, len(hrdata) * 2) # Crear un nuevo eje de tiempo con mayor resolución
-    #interpolator = interp1d(time_original, hrdata, kind='cubic')
-    #new_hrdata = interpolator(new_time)
+    if interpolados == True:
+        hrdata = hrdata.flatten()
+
+        time_original = np.linspace(0, len(hrdata)/sample_rate, len(hrdata))
+        new_time = np.linspace(0, len(hrdata)/sample_rate, len(hrdata) * 2)
+
+        try:
+            interpolator = interp1d(time_original, hrdata, kind='cubic')
+            hrdata = interpolator(new_time)
+            sample_rate *= 2 
+            res = "resultadosIterpolados_"
+        except Exception as e:
+            print("Error al interpolar:", e)
+    else: 
+        res = "resultados_"
 
     # Procesar la señal
     working_data, measures = hp.process(hrdata, sample_rate) 
@@ -36,36 +61,27 @@ def analyze_data(subject, file_path):
         segment_overlap = overlap,  
         calc_freq = True,
         reject_segmentwise = True,  # No eliminar segmentos
-        high_precision = True)
-
-    # Calcular los promedios de BPM y HRV
-    bpm_avg = np.mean(measures['bpm'])
-    hrv_avg = np.mean(measures['rmssd'])
-    lf_hf_avg = np.mean(measures['lf/hf'])
+        high_precision = True # Mayor precisión
+    )
 
     # Imprimir los valores obtenidos
-    print(f"Información de " + subject)
-    print(f"Promedio de BPM: {bpm_avg:.2f}")
-    print(f"Promedio de HRV (RMSSD): {hrv_avg:.2f}")
-    print(f"Promedio de lf/hf: {lf_hf_avg:.2f}")
-
-     # Imprimir los valores obtenidos
-    tit = "Datos de " + subject
-    bpm_text = "Promedio de BPM: " + str(round(bpm_avg, 2)) + "\n"
-    hrv_text = "Promedio de HRV (RMSSD): " + str(round(hrv_avg, 2)) + "\n"
-    lf_hf_text = "Promedio de lf/hf: " + str(round(lf_hf_avg, 2)) + "\n"
+    tit = "Datos de " + subject + "\n"
+    bpm_text = "Datos de BPM: " + str(measures['bpm']) + "\n"
+    hrv_text = "Datos de HRV (RMSSD): " + str(measures['rmssd']) + "\n"
+    lf_hf_text = "Datos de lf/hf: " + str(measures['lf/hf']) + "\n"
 
     # Escribir en el archivo
-    resultados_sujeto = "resultados_" + subject + ".txt"
-    with open(resultados_sujeto, "a") as file:
+    resultados_sujeto = res + subject + ".txt"
+    with open(resultados_sujeto, "w") as file:
         file.write(tit + "\n")
         file.write(bpm_text)
         file.write(hrv_text)
         file.write(lf_hf_text)
         file.write("")
 
+    # Mensaje final
+    print(f"\n\nInformación de " + subject + " analizada ")
 
-subject = "subject04"
-subject_file = "/Users/mirandaurbansolano/Documents/GitHub/" + subject + ".mat"
-
-analyze_data(subject, subject_file)
+num = input("Escoge un sujeto con formato '0X': ")
+interpolados = input("¿Se deben interpolar? [y/n]: ")
+choose_subject(num, interpolados)
