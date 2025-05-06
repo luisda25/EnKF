@@ -45,7 +45,7 @@ def analyze_data(subject, file_path, interpolados):
             interpolator = interp1d(time_original, hrdata, kind='cubic')
             hrdata = interpolator(new_time)
             sample_rate *= 2 
-            res = "resultadosIterpolados_"
+            res = "resultadosInterpolados_"
         except Exception as e:
             print("Error al interpolar:", e)
     else: 
@@ -71,7 +71,7 @@ def analyze_data(subject, file_path, interpolados):
     lf_hf_text = "Datos de lf/hf: " + str(measures['lf/hf']) + "\n"
 
     # Escribir en el archivo
-    resultados_sujeto = res + subject + ".txt"
+    resultados_sujeto = "Resultados/" + res + subject + ".txt"
     with open(resultados_sujeto, "w") as file:
         file.write(tit + "\n")
         file.write(bpm_text)
