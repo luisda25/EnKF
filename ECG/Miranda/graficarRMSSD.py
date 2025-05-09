@@ -22,6 +22,14 @@ def graficar_rmssd(nombre_archivo, num, width=15, overlap=0.5):
         print("Error al procesar los valores de HRV (RMSSD):", e)
         return
 
+    # Verificar si hay valores nan o cero
+    if np.any(np.isnan(rmssd_vals)):
+        print("⚠️ Hay valores NaN en los datos de RMSSD.")
+        return
+    if np.any(rmssd_vals == 0):
+        print("⚠️ Hay valores 0 en los datos de RMSSD.")
+        return
+
     # Crear eje de tiempo
     step = width * (1 - overlap)
     times = np.arange(0, len(rmssd_vals) * step, step)
@@ -44,8 +52,9 @@ def graficar_rmssd(nombre_archivo, num, width=15, overlap=0.5):
     plt.ylabel('RMSSD')
     plt.legend()
     plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+    plt.savefig('Resultados/Gráficas/plot_sujeto' + num + '.jpg')
+
+    # plt.show()
 
 # Ejemplo de uso
 num = input("Escoge un sujeto con formato '0X': ")

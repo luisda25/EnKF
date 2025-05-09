@@ -45,11 +45,11 @@ def analyze_data(subject, file_path, interpolados):
             interpolator = interp1d(time_original, hrdata, kind='cubic')
             hrdata = interpolator(new_time)
             sample_rate *= 2 
-            res = "resultadosInterpolados_"
+            res = "Interpolados/resultadosInterpolados_"
         except Exception as e:
             print("Error al interpolar:", e)
     else: 
-        res = "resultados_"
+        res = "NoInterpolados/resultados_"
 
     # Procesar la señal
     working_data, measures = hp.process(hrdata, sample_rate) 
